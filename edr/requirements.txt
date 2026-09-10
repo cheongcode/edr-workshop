@@ -1,0 +1,11 @@
+# Cross-platform
+watchdog
+psutil
+pefile
+scapy
+
+# Windows lab runtime (packet block + process-creation hooks + WMI)
+pydivert
+WMI
+pywin32
+# procnotifier cannot be installed with pip; run ProcNotifierSetup.exe on Windows.

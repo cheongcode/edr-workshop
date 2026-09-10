@@ -1,0 +1,17 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.omc/
+.DS_Store
+.idea/
+.vscode/
+*.egg-info/
+dist/
+build/
+*.zip
+samples/
+submissions/

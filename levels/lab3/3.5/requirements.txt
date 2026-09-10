@@ -1,0 +1,7 @@
+watchdog
+pydivert
+scapy
+procnotifier # Cant install with pip (use ProcNotifierSetup.exe). Its here as an assertion that it's installed
+psutil
+zipfile
+pywin32
