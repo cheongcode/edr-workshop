@@ -1,9 +1,10 @@
 """Process-creation monitor.
 
-Windows uses ProcNotifier (ProcNotifierSetup.exe). On macOS the import is
-optional and this component logs a warning instead of crashing.
+Windows uses ProcNotifier (ProcNotifierSetup.exe). The import is optional so
+the agent still starts if the course installer has not been run.
 """
 import logging
+import os
 import re
 
 from common import Component
@@ -59,11 +60,24 @@ class ProcMon(Component):
     def __init__(self, event_queue):
         Component.__init__(self, event_queue, 'ProcMon')
         if watch_new_processes is None:
-            logging.warning(
-                "ProcNotifier is Windows-only; process creation monitoring is disabled"
-            )
+            if os.name == 'nt':
+                logging.warning(
+                    "procnotifier is not installed. Run ProcNotifierSetup.exe from "
+                    "the course (it is not on pip), then recreate the venv if needed. "
+                    "Process-creation monitoring is disabled."
+                )
+            else:
+                logging.warning(
+                    "ProcNotifier is Windows-only; process creation monitoring is disabled"
+                )
             return
-        watch_new_processes(self._handle_new_process)
+        try:
+            watch_new_processes(self._handle_new_process)
+        except Exception as e:
+            logging.warning(
+                "ProcNotifier failed to start; process-creation monitoring is disabled (%s: %s)",
+                type(e).__name__, e,
+            )
 
     def _handle_new_process(self, event):
         path = event.get('path') or ''

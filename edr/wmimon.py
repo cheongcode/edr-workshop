@@ -21,7 +21,13 @@ class WMIMon(Component):
         self._stop = False
         threads = []
         if wmi is None or os.name != 'nt':
-            logging.warning("WMI is Windows-only; persistence monitoring is disabled")
+            if os.name == 'nt':
+                logging.warning(
+                    "WMI/pywin32 is not installed; persistence monitoring is disabled. "
+                    "pip install WMI pywin32"
+                )
+            else:
+                logging.warning("WMI is Windows-only; persistence monitoring is disabled")
             Component.__init__(self, event_queue, 'WMIMon')
             return
 
@@ -29,8 +35,15 @@ class WMIMon(Component):
         Component.__init__(self, event_queue, 'WMIMon', threads)
 
     def _monitor_scheduled_jobs(self):
-        pythoncom.CoInitialize()
-        watcher = wmi.WMI().Win32_StartupCommand.watch_for("creation")
+        try:
+            pythoncom.CoInitialize()
+            watcher = wmi.WMI().Win32_StartupCommand.watch_for("creation")
+        except Exception as e:
+            logging.warning(
+                "WMI startup-command watch failed; persistence monitoring is limited (%s: %s)",
+                type(e).__name__, e,
+            )
+            return
         while not self._stop:
             try:
                 cmd = watcher(timeout_ms=1000)
@@ -44,8 +57,15 @@ class WMIMon(Component):
         pythoncom.CoUninitialize()
 
     def _monitor_services(self):
-        pythoncom.CoInitialize()
-        watcher = wmi.WMI().Win32_Service.watch_for("creation")
+        try:
+            pythoncom.CoInitialize()
+            watcher = wmi.WMI().Win32_Service.watch_for("creation")
+        except Exception as e:
+            logging.warning(
+                "WMI service watch failed; persistence monitoring is limited (%s: %s)",
+                type(e).__name__, e,
+            )
+            return
         while not self._stop:
             try:
                 service = watcher(timeout_ms=1000)

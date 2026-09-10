@@ -8,6 +8,7 @@ Level 2.2  HTTP deep packet inspection / stream reassembly
 import logging
 import os
 import time
+import traceback
 
 from common import *
 from streams import StreamTracker
@@ -23,6 +24,25 @@ except ImportError:
     IP = TCP = None
 
 RET_VAL_BLOCK_PACKET = True
+
+
+def windivert_skip_reason(os_name=None, arm64=None, divert=None):
+    """Why packet capture should not start, or None if we should try WinDivert."""
+    os_name = os.name if os_name is None else os_name
+    arm64 = is_arm64_python() if arm64 is None else arm64
+    divert = pydivert if divert is None else divert
+
+    if os_name != 'nt':
+        return "WinDivert is Windows-only; packet blocking / DPI is disabled"
+    if divert is None:
+        return "pydivert is not installed; packet blocking / DPI is disabled"
+    if arm64:
+        return (
+            "ARM64 Python cannot load pydivert's x64 WinDivert.dll (WinError 193). "
+            "Install AMD64 Python, recreate .venv, and rerun as Administrator. "
+            "Packet blocking / DPI is disabled in this process."
+        )
+    return None
 
 
 def get_listeners():
@@ -63,20 +83,28 @@ class Firewall(Component):
         )
 
     def _divert_proc(self):
-        if pydivert is None or os.name != 'nt':
-            logging.warning(
-                "WinDivert is Windows-only; packet blocking / DPI is disabled"
-            )
+        reason = windivert_skip_reason()
+        if reason:
+            logging.warning(reason)
             return
 
-        with pydivert.WinDivert() as windivert:
-            for packet in windivert:
-                if RET_VAL_BLOCK_PACKET == self._handle_packet(packet):
-                    continue
-                try:
-                    windivert.send(packet)
-                except OSError:
-                    pass
+        try:
+            with pydivert.WinDivert() as windivert:
+                for packet in windivert:
+                    if RET_VAL_BLOCK_PACKET == self._handle_packet(packet):
+                        continue
+                    try:
+                        windivert.send(packet)
+                    except OSError:
+                        pass
+        except Exception as e:
+            logging.warning(
+                "WinDivert failed to start; packet blocking / DPI is disabled "
+                "(%s: %s). Run the terminal as Administrator. On ARM PCs use "
+                "AMD64 Python, not ARM64.",
+                type(e).__name__, e,
+            )
+            logging.debug("WinDivert startup error:\n%s", traceback.format_exc())
 
     def _periodic_checks(self):
         self._listeners = get_listeners()

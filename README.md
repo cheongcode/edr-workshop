@@ -57,6 +57,18 @@ python main.py
 
 `procnotifier` will not install with pip. Install it with the course’s `ProcNotifierSetup.exe`, then run `main.py` again.
 
+### ARM64 Windows (Snapdragon / `Python3xx-arm64`)
+
+`pydivert` ships an **x64** `WinDivert.dll`. ARM64 Python cannot load it (`WinError 193`), which used to crash the firewall thread. The agent now skips WinDivert instead of crashing.
+
+For packet block + HTTP DPI (levels 1.2, 2.1, 2.2):
+
+1. Install **Windows installer (64-bit)** Python from python.org — the AMD64 build, not ARM64.
+2. Recreate the venv with that interpreter and `pip install -r requirements.txt`.
+3. Run `python main.py` from an **Administrator** PowerShell.
+
+FileMon, listeners, and WMI can still run on ARM64 Python.
+
 ## Run tests (any OS)
 
 Packet blocking, ProcNotifier, and WMI are skipped on macOS/Linux. The tests exercise hashing, zip scanning, command parsers, origin tracking, and the Level 3.5 rundll32 handler without those drivers.

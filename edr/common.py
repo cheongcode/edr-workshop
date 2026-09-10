@@ -2,12 +2,23 @@
 import hashlib
 import logging
 import os
+import platform
 import subprocess
+import sysconfig
 import threading
 import time
 import traceback
 
 import psutil
+
+
+def is_arm64_python():
+    """True when this interpreter is ARM64 (e.g. Python 3.12 from python.org ARM64)."""
+    machine = (platform.machine() or '').lower()
+    if machine in ('arm64', 'aarch64'):
+        return True
+    plat = (sysconfig.get_platform() or '').lower()
+    return 'arm64' in plat or 'aarch64' in plat
 
 
 class Component:

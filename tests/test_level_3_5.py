@@ -317,5 +317,29 @@ class FileMonKindTests(unittest.TestCase):
         self.assertEqual(q.get_nowait()['kind'], 'camouflaged_exe')
 
 
+class WinDivertSkipTests(unittest.TestCase):
+    def test_non_windows(self):
+        from firewall import windivert_skip_reason
+        msg = windivert_skip_reason(os_name='posix', arm64=False, divert=object())
+        self.assertIn('Windows-only', msg)
+
+    def test_missing_pydivert(self):
+        from firewall import windivert_skip_reason
+        msg = windivert_skip_reason(os_name='nt', arm64=False, divert=None)
+        self.assertIn('pydivert is not installed', msg)
+
+    def test_arm64_python(self):
+        from firewall import windivert_skip_reason
+        msg = windivert_skip_reason(os_name='nt', arm64=True, divert=object())
+        self.assertIn('ARM64', msg)
+        self.assertIn('WinError 193', msg)
+
+    def test_amd64_ready(self):
+        from firewall import windivert_skip_reason
+        self.assertIsNone(
+            windivert_skip_reason(os_name='nt', arm64=False, divert=object())
+        )
+
+
 if __name__ == '__main__':
     unittest.main()
