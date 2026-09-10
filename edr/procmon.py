@@ -62,8 +62,8 @@ class ProcMon(Component):
         if watch_new_processes is None:
             if os.name == 'nt':
                 logging.warning(
-                    "procnotifier is not installed. Run ProcNotifierSetup.exe from "
-                    "the course (it is not on pip), then recreate the venv if needed. "
+                    "procnotifier is not installed. Run installers/ProcNotifierSetup.exe "
+                    "(it is not on pip), then open a new terminal. "
                     "Process-creation monitoring is disabled."
                 )
             else:

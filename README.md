@@ -7,6 +7,7 @@ Python EDR built across an incremental lab (levels **1.1 → 3.5**). Each level 
 ```text
 edr-workshop/
 ├── edr/                 # complete agent (everything through 3.5)
+├── installers/          # Windows extras (ProcNotifierSetup.exe)
 ├── levels/
 │   ├── lab1/1.1 … 1.5   # official snapshots
 │   ├── lab2/2.1 … 2.4
@@ -44,10 +45,14 @@ The lab runtime is Windows. You need:
 
 1. Python 3
 2. [WinDivert](https://www.reqrypt.org/windivert.html) + `pydivert` (packet block)
-3. `ProcNotifierSetup.exe` from the course (process-creation callbacks — **not** on PyPI)
+3. `installers/ProcNotifierSetup.exe` (process-creation callbacks — **not** on PyPI)
 4. Admin / SYSTEM-equivalent rights for WMI, WinDivert, and killing processes
 
 ```powershell
+# 1) Install process-creation hooks (once)
+.\installers\ProcNotifierSetup.exe
+
+# 2) Agent
 cd edr
 python -m venv .venv
 .\.venv\Scripts\activate
@@ -55,7 +60,11 @@ pip install -r requirements.txt
 python main.py
 ```
 
-`procnotifier` will not install with pip. Install it with the course’s `ProcNotifierSetup.exe`, then run `main.py` again.
+`procnotifier` will not install with pip. After `ProcNotifierSetup.exe`, open a **new** terminal so Python can import it. Confirm with:
+
+```powershell
+python -c "from procnotifier import watch_new_processes; print('ok')"
+```
 
 ### ARM64 Windows (Snapdragon / `Python3xx-arm64`)
 

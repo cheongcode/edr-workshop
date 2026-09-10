@@ -8,4 +8,4 @@ scapy
 pydivert
 WMI
 pywin32
-# procnotifier cannot be installed with pip; run ProcNotifierSetup.exe on Windows.
+# procnotifier cannot be installed with pip; run ../installers/ProcNotifierSetup.exe on Windows.
